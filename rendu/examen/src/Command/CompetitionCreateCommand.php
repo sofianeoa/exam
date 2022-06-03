@@ -2,6 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\competition;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -11,31 +14,40 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'competitionCreate',
-    description: 'Add a short description for your command',
+    name: 'competition:create',
+    description: 'creation d une competition ',
 )]
-class CompetitionCreateCommand extends Command
+class competitionCreateCommand extends Command
 {
+    private $entityManager;
+    public function __construct(EntityManagerInterface $entityManager , ?string $name = null)
+    {
+        parent::__construct($name);
+        $this->entityManager = $entityManager;
+    }
     protected function configure(): void
     {
         $this
-            ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
+            #->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
+            ->addOption('competitionName', null, InputOption::VALUE_REQUIRED, 'name of the competition')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-        $arg1 = $input->getArgument('arg1');
+        $io = new SymfonyStyle( $input, $output);
 
-        if ($arg1) {
-            $io->note(sprintf('You passed an argument: %s', $arg1));
+        if ($input->getOption('competitionName')) {
+            $competitionName = $input->getOption(name: 'competitionName');
+            $io->warning($competitionName);
         }
 
-        if ($input->getOption('option1')) {
-            // ...
-        }
+        
+        $competition = new competition();
+        $competition->setName($competitionName);
+
+        $this->entityManager->persist($competition);
+        $this->entityManager->flush();
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 
